@@ -1,3 +1,15 @@
+// ==================== SUPABASE CONFIG ====================
+const SUPABASE_URL = 'https://kgjvxmhkswgqihoxpgsr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_HHsEww4KyjlTPngBGSX6Pg_gtyhjlSC';
+
+if (typeof window.createClient === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
+    script.onload = () => { window.supabase = window.createClient(SUPABASE_URL, SUPABASE_KEY); };
+    document.head.appendChild(script);
+} else {
+    window.supabase = window.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
 // ==================== SIMULATOR CONFIGURATION ====================
 let comparisonChart = null;
 
@@ -105,62 +117,59 @@ async function runPredictionSimulation() {
 function displayPredictionResults(prediction) {
     // Ocultar mensaje inicial
     document.getElementById('results-container').style.display = 'none';
-    
     // Mostrar resultados
     const resultsDiv = document.getElementById('prediction-results');
     resultsDiv.style.display = 'block';
-    
     // Actualizar valores
     document.getElementById('prob-value').textContent = 
         `${(prediction.probabilidad * 100).toFixed(1)}%`;
-    
     const riskValue = document.getElementById('risk-value');
     riskValue.textContent = prediction.nivel_riesgo;
     riskValue.style.color = getRiskColor(prediction.nivel_riesgo);
-    
     document.getElementById('days-value').textContent = 
-        `${prediction.dias_estimados_falla} ds`;
-    
+        `${prediction.dias_estimados_falla} días`;
     document.getElementById('action-value').textContent = 
         prediction.accion_recomendada;
+    // Mostrar historial
+    loadSimulationHistory();
 }
 
 function getRiskColor(riesgo) {
     switch(riesgo) {
-        case 'Alto':
-            return '#ef4444';
-        case 'Medio':
-            return '#f59e0b';
-        case 'Bajo':
-            return '#10b981';
-        default:
-            return '#6b7280';
-    }
-}
+        try {
+            while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
+            // Simulación simple en frontend (puedes mejorar la lógica)
+            const probabilidad = Math.random() * 0.8 + 0.1;
+            const nivel_riesgo = probabilidad > 0.7 ? 'Alto' : probabilidad > 0.4 ? 'Medio' : 'Bajo';
+            const dias_estimados_falla = Math.floor(10 + Math.random() * 90);
+            const accion_recomendada = nivel_riesgo === 'Alto' ? 'Realizar mantenimiento inmediato' : 'Monitorear estado';
 
-// ==================== KPIs SIMULATION ====================
-async function runKPIsSimulation() {
-    const delayDays = document.getElementById('delay-days').value;
-    const costIncrease = document.getElementById('cost-increase').value;
-    
-    try {
-        const response = await fetch('/api/simulator/kpis', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                delay_days: parseInt(delayDays),
-                cost_increase: parseFloat(costIncrease)
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            displayKPIsResults(data.kpis_simulados);
-        } else {
-            alert('Error en la simulacin: ' + data.error);
+            // Guardar simulación en Supabase
+            const { error } = await window.supabase
+                .from('simulaciones')
+                .insert([{
+                    tipo: 'prediction',
+                    equipo_id: parseInt(equipoId),
+                    componente_id: parseInt(componenteId),
+                    kilometraje: parseInt(kilometraje),
+                    horas_operacion: parseInt(horasOperacion),
+                    dias_desde_mant: parseInt(diasMant),
+                    porcentaje_vida_util: parseInt(vidaUtil),
+                    probabilidad,
+                    nivel_riesgo,
+                    dias_estimados_falla,
+                    accion_recomendada,
+                    fecha: new Date().toISOString()
+                }]);
+            if (error) {
+                alert('Error al guardar simulación en Supabase: ' + error.message);
+                return;
+            }
+            displayPredictionResults({ probabilidad, nivel_riesgo, dias_estimados_falla, accion_recomendada });
+        } catch (error) {
+            console.error('Error en simulación:', error);
+            alert('Error al ejecutar la simulación');
+        }
         }
     } catch (error) {
         console.error('Error en simulacin:', error);
@@ -171,13 +180,13 @@ async function runKPIsSimulation() {
 function displayKPIsResults(kpis) {
     // Ocultar mensaje inicial
     document.getElementById('results-container').style.display = 'none';
-    
     // Mostrar resultados
     const resultsDiv = document.getElementById('kpis-results');
     resultsDiv.style.display = 'block';
-    
-    // Crear grfico de comparacin
+    // Crear gráfico de comparación
     createComparisonChart(kpis);
+    // Mostrar historial
+    loadSimulationHistory();
 }
 
 function createComparisonChart(kpis) {
@@ -206,77 +215,40 @@ function createComparisonChart(kpis) {
         type: 'bar',
         data: {
             labels: labels,
-            try {
-                const response = await fetch('/.netlify/functions/simulator-predict', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        equipo_id: parseInt(equipoId),
-                        componente_id: parseInt(componenteId),
-                        kilometraje: parseInt(kilometraje),
-                        horas_operacion: parseInt(horasOperacion),
-                        dias_desde_mant: parseInt(diasMant),
-                        porcentaje_vida_util: parseInt(vidaUtil)
-                    })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    displayPredictionResults(data.prediction);
-                } else {
-                    alert('Error en la simulación: ' + (data.error || 'Sin respuesta del servidor'));
+            datasets: [
+                {
+                    label: 'Actual',
+                    data: actualData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Simulado',
+                    data: simuladoData,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
                 }
-            } catch (error) {
-                console.error('Error en simulación:', error);
-                alert('Error al ejecutar la simulación');
-            }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Comparación de KPIs - Actual vs Simulado',
                     font: {
                         size: 16,
                         weight: 'bold'
-                    }
-                },
-                try {
-                    const response = await fetch('/.netlify/functions/simulator-kpis', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            delay_days: parseInt(delayDays),
-                            cost_increase: parseFloat(costIncrease)
-                        })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        displayKPIsResults(data.kpis_simulados);
-                    } else {
-                        alert('Error en la simulación: ' + (data.error || 'Sin respuesta del servidor'));
-                    }
-                } catch (error) {
-                    console.error('Error en simulación:', error);
-                    alert('Error al ejecutar la simulación');
-                }
-                                        break;
-                                    case 'costo':
-                                        change = kpis.costo.cambio;
-                                        break;
-                                }
-                                
-                                label += ` (${change > 0 ? '+' : ''}${change.toFixed(1)}%)`;
-                            }
-                            
-                            return label;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Valor'
                     }
                 }
             }
@@ -284,27 +256,67 @@ function createComparisonChart(kpis) {
     });
 }
 
-// ==================== RESET SIMULATION ====================
-function resetSimulation() {
-    // Resetear sliders
-    document.getElementById('kilometraje').value = 50000;
-    document.getElementById('horas-operacion').value = 5000;
-    document.getElementById('dias-mant').value = 30;
-    document.getElementById('vida-util').value = 50;
-    document.getElementById('delay-days').value = 0;
-    document.getElementById('cost-increase').value = 0;
-    
-    // Actualizar valores mostrados
-    updateSliderValue('kilometraje');
-    updateSliderValue('horas-operacion');
-    updateSliderValue('dias-mant');
-    updateSliderValue('vida-util');
-    updateSliderValue('delay-days');
-    updateSliderValue('cost-increase');
-    
-    // Ocultar resultados
-    document.getElementById('prediction-results').style.display = 'none';
-    document.getElementById('kpis-results').style.display = 'none';
-    document.getElementById('results-container').style.display = 'block';
+// ==================== LOAD SIMULATION HISTORY ====================
+async function loadSimulationHistory() {
+    while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
+    const { data, error } = await window.supabase
+        .from('simulaciones')
+        .select('*')
+        .order('fecha', { ascending: false })
+        .limit(10);
+    let historyDiv = document.getElementById('history-container');
+    if (!historyDiv) {
+        // Insertar el historial debajo de los resultados
+        let panel = document.querySelector('.simulator-panel:last-of-type');
+        if (!panel) return;
+        historyDiv = document.createElement('div');
+        historyDiv.id = 'history-container';
+        historyDiv.style.marginTop = '2rem';
+        historyDiv.innerHTML = '<p style="color:#a1a1aa;">Cargando historial...</p>';
+        panel.appendChild(historyDiv);
+    }
+    if (error) {
+        historyDiv.innerHTML = '<p style="color:#ef4444;">Error al cargar historial</p>';
+        return;
+    }
+    if (!data || data.length === 0) {
+        historyDiv.innerHTML = '<p style="color:#a1a1aa;">No hay simulaciones previas.</p>';
+        addClearHistoryButton();
+        return;
+    }
+    historyDiv.innerHTML = data.map(sim => `
+        <div style=\"background:#232837;padding:1rem;border-radius:0.5rem;margin-bottom:0.5rem;\">
+            <strong>${sim.tipo === 'prediction' ? 'Predicción' : 'KPIs'}</strong> - <span style=\"color:#a1a1aa;\">${new Date(sim.fecha).toLocaleString('es-ES')}</span><br>
+            ${sim.tipo === 'prediction' ? `
+                <span>Equipo: ${sim.equipo_id || '-'} | Componente: ${sim.componente_id || '-'} | Prob: ${(sim.probabilidad*100).toFixed(1)}% | Riesgo: ${sim.nivel_riesgo || '-'}</span>
+            ` : `
+                <span>MTBF: ${sim.mtbf_simulado?.toFixed(1) || '-'} | MTTR: ${sim.mttr_simulado?.toFixed(1) || '-'} | Disp: ${sim.disponibilidad_simulado?.toFixed(1) || '-'}% | Costo: $${sim.costo_simulado?.toFixed(2) || '-'}</span>
+            `}
+        </div>
+    `).join('');
+    addClearHistoryButton();
+}
+
+// Botón para limpiar historial
+function addClearHistoryButton() {
+    let historyDiv = document.getElementById('history-container');
+    if (!historyDiv || document.getElementById('clear-history-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'clear-history-btn';
+    btn.textContent = 'Limpiar historial';
+    btn.style = 'margin-bottom:1rem;background:#ef4444;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;cursor:pointer;font-weight:600;float:right;';
+    btn.onclick = clearSimulationHistory;
+    historyDiv.prepend(btn);
+}
+
+async function clearSimulationHistory() {
+    if (!confirm('¿Seguro que deseas borrar todo el historial de simulaciones?')) return;
+    while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
+    const { error } = await window.supabase.from('simulaciones').delete().neq('id', 0); // Borra todos los registros
+    if (error) {
+        alert('Error al borrar historial: ' + error.message);
+        return;
+    }
+    loadSimulationHistory();
 }
 
