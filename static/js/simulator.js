@@ -135,45 +135,53 @@ function displayPredictionResults(prediction) {
 }
 
 function getRiskColor(riesgo) {
-    switch(riesgo) {
-        try {
-            while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
-            // Simulación simple en frontend (puedes mejorar la lógica)
-            const probabilidad = Math.random() * 0.8 + 0.1;
-            const nivel_riesgo = probabilidad > 0.7 ? 'Alto' : probabilidad > 0.4 ? 'Medio' : 'Bajo';
-            const dias_estimados_falla = Math.floor(10 + Math.random() * 90);
-            const accion_recomendada = nivel_riesgo === 'Alto' ? 'Realizar mantenimiento inmediato' : 'Monitorear estado';
+    switch (riesgo) {
+        case 'Alto':
+            return 'red';
+        case 'Medio':
+            return 'orange';
+        case 'Bajo':
+            return 'green';
+        default:
+            return 'gray';
+    }
+}
 
-            // Guardar simulación en Supabase
-            const { error } = await window.supabase
-                .from('simulaciones')
-                .insert([{
-                    tipo: 'prediction',
-                    equipo_id: parseInt(equipoId),
-                    componente_id: parseInt(componenteId),
-                    kilometraje: parseInt(kilometraje),
-                    horas_operacion: parseInt(horasOperacion),
-                    dias_desde_mant: parseInt(diasMant),
-                    porcentaje_vida_util: parseInt(vidaUtil),
-                    probabilidad,
-                    nivel_riesgo,
-                    dias_estimados_falla,
-                    accion_recomendada,
-                    fecha: new Date().toISOString()
-                }]);
-            if (error) {
-                alert('Error al guardar simulación en Supabase: ' + error.message);
-                return;
-            }
-            displayPredictionResults({ probabilidad, nivel_riesgo, dias_estimados_falla, accion_recomendada });
-        } catch (error) {
-            console.error('Error en simulación:', error);
-            alert('Error al ejecutar la simulación');
+// Async simulation logic moved here
+async function runSimulation(equipoId, componenteId, kilometraje, horasOperacion, diasMant, vidaUtil) {
+    try {
+        while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
+        // Simulación simple en frontend (puedes mejorar la lógica)
+        const probabilidad = Math.random() * 0.8 + 0.1;
+        const nivel_riesgo = probabilidad > 0.7 ? 'Alto' : probabilidad > 0.4 ? 'Medio' : 'Bajo';
+        const dias_estimados_falla = Math.floor(10 + Math.random() * 90);
+        const accion_recomendada = nivel_riesgo === 'Alto' ? 'Realizar mantenimiento inmediato' : 'Monitorear estado';
+
+        // Guardar simulación en Supabase
+        const { error } = await window.supabase
+            .from('simulaciones')
+            .insert([{
+                tipo: 'prediction',
+                equipo_id: parseInt(equipoId),
+                componente_id: parseInt(componenteId),
+                kilometraje: parseInt(kilometraje),
+                horas_operacion: parseInt(horasOperacion),
+                dias_desde_mant: parseInt(diasMant),
+                porcentaje_vida_util: parseInt(vidaUtil),
+                probabilidad,
+                nivel_riesgo,
+                dias_estimados_falla,
+                accion_recomendada,
+                fecha: new Date().toISOString()
+            }]);
+        if (error) {
+            alert('Error al guardar simulación en Supabase: ' + error.message);
+            return;
         }
-        }
+        displayPredictionResults({ probabilidad, nivel_riesgo, dias_estimados_falla, accion_recomendada });
     } catch (error) {
-        console.error('Error en simulacin:', error);
-        alert('Error al ejecutar la simulacin');
+        console.error('Error en simulación:', error);
+        alert('Error al ejecutar la simulación');
     }
 }
 
@@ -191,12 +199,10 @@ function displayKPIsResults(kpis) {
 
 function createComparisonChart(kpis) {
     const canvas = document.getElementById('kpi-comparison-chart');
-    
-    // Destruir grfico anterior si existe
+    // Destruir gráfico anterior si existe
     if (comparisonChart) {
         comparisonChart.destroy();
     }
-    
     const labels = ['MTBF', 'MTTR', 'Disponibilidad', 'Costo'];
     const actualData = [
         kpis.mtbf.actual,
@@ -210,7 +216,6 @@ function createComparisonChart(kpis) {
         kpis.disponibilidad.simulado,
         kpis.costo.simulado
     ];
-    
     comparisonChart = new Chart(canvas, {
         type: 'bar',
         data: {
