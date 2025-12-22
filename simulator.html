@@ -38,12 +38,12 @@
         .comparison-chart { margin-top: 2rem; height: 300px; }
     </style>
 </head>
-<body>
+<body style="background: #181c24; min-height: 100vh;">
     <div class="container">
-        <header class="header">
+        <header class="header" style="background: #232837; border-radius: 0 0 1rem 1rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3); margin-bottom: 2rem;">
             <div class="header-title">
-                <span class="header-icon">🔧</span>
-                <h1>Mantenimiento Predictivo IA</h1>
+                <span class="header-icon" style="font-size:2rem;">🔧</span>
+                <h1 style="font-size:2rem; font-weight:700; color:#f3f4f6; margin-left:0.5rem;">Simulador de Mantenimiento Predictivo IA</h1>
             </div>
             <div class="header-actions">
                 <span class="timestamp" id="current-time">Cargando...</span>
@@ -97,8 +97,8 @@
                 </ul>
             </nav>
         </aside>
-        <main class="main-content">
-            <div class="simulator-container">
+        <main class="main-content" style="padding-bottom:2rem;">
+            <div class="simulator-container" style="max-width: 1200px; margin: 0 auto;">
                 <!-- Panel de Configuración -->
                 <div class="simulator-panel">
                     <h2 class="section-title">
@@ -181,7 +181,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn-simulate" onclick="runSimulation()">
+                        <button type="button" class="btn-simulate" style="background: linear-gradient(135deg, #2563eb, #1e40af); color: #fff;" onclick="runSimulation()">
                             <i class="fas fa-play"></i> Ejecutar Simulación
                         </button>
                     </form>
@@ -224,7 +224,7 @@
                 </div>
             </div>
         </main>
-        <aside class="chat-panel">
+        <aside class="chat-panel" style="background: #232837; border-radius: 1rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3);">
             <div class="chat-header">
                 <h3 class="chat-title">
                     <i class="fas fa-comments"></i>
@@ -277,6 +277,24 @@
         function refreshData() {
             location.reload();
         }
+        // Responsividad para pantallas pequeñas
+        window.addEventListener('resize', function() {
+            const container = document.querySelector('.simulator-container');
+            if (window.innerWidth < 900) {
+                container.style.gridTemplateColumns = '1fr';
+            } else {
+                container.style.gridTemplateColumns = '1fr 1fr';
+            }
+        });
+        // Inicializar responsividad
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.simulator-container');
+            if (window.innerWidth < 900) {
+                container.style.gridTemplateColumns = '1fr';
+            } else {
+                container.style.gridTemplateColumns = '1fr 1fr';
+            }
+        });
     </script>
 </body>
 </html>

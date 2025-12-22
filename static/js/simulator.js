@@ -206,61 +206,57 @@ function createComparisonChart(kpis) {
         type: 'bar',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: 'Actual',
-                    data: actualData,
-                    backgroundColor: 'rgba(37, 99, 235, 0.7)',
-                    borderColor: 'rgba(37, 99, 235, 1)',
-                    borderWidth: 2
-                },
-                {
-                    label: 'Simulado',
-                    data: simuladoData,
-                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
-                    borderColor: 'rgba(239, 68, 68, 1)',
-                    borderWidth: 2
+            try {
+                const response = await fetch('/.netlify/functions/simulator-predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        equipo_id: parseInt(equipoId),
+                        componente_id: parseInt(componenteId),
+                        kilometraje: parseInt(kilometraje),
+                        horas_operacion: parseInt(horasOperacion),
+                        dias_desde_mant: parseInt(diasMant),
+                        porcentaje_vida_util: parseInt(vidaUtil)
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    displayPredictionResults(data.prediction);
+                } else {
+                    alert('Error en la simulación: ' + (data.error || 'Sin respuesta del servidor'));
                 }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Comparacin: Actual vs Simulado',
+            } catch (error) {
+                console.error('Error en simulación:', error);
+                alert('Error al ejecutar la simulación');
+            }
                     font: {
                         size: 16,
                         weight: 'bold'
                     }
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            label += context.parsed.y.toFixed(2);
-                            
-                            // Agregar porcentaje de cambio
-                            if (context.datasetIndex === 1) {
-                                const kpiName = context.label.toLowerCase();
-                                let change = 0;
-                                
-                                switch(kpiName) {
-                                    case 'mtbf':
-                                        change = kpis.mtbf.cambio;
-                                        break;
-                                    case 'mttr':
-                                        change = kpis.mttr.cambio;
-                                        break;
-                                    case 'disponibilidad':
-                                        change = kpis.disponibilidad.cambio;
+                try {
+                    const response = await fetch('/.netlify/functions/simulator-kpis', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            delay_days: parseInt(delayDays),
+                            cost_increase: parseFloat(costIncrease)
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        displayKPIsResults(data.kpis_simulados);
+                    } else {
+                        alert('Error en la simulación: ' + (data.error || 'Sin respuesta del servidor'));
+                    }
+                } catch (error) {
+                    console.error('Error en simulación:', error);
+                    alert('Error al ejecutar la simulación');
+                }
                                         break;
                                     case 'costo':
                                         change = kpis.costo.cambio;

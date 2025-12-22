@@ -57,16 +57,28 @@
 		}
 	</style>
 </head>
-<body>
-	<div class="welcome-container">
-		<div class="welcome-card">
-			<div class="welcome-title"><i class="fas fa-robot"></i> IA KPI Dashboard</div>
-			<p>Bienvenido al sistema de monitoreo y simulación de KPIs con IA.<br>Selecciona una opción para comenzar:</p>
-			<div class="welcome-btns">
-				<a href="/dashboard.html" class="welcome-btn"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+<body style="background: #181c24; color: #f3f4f6; min-height: 100vh;">
+	<div class="container">
+		<header class="header" style="background: #232837; border-radius: 0 0 1rem 1rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3); margin-bottom: 2rem;">
+			<div class="header-title" style="display:flex;align-items:center;gap:0.5rem;">
+				<span class="header-icon" style="font-size:2rem;">🤖</span>
+				<h1 style="font-size:2rem; font-weight:700; color:#f3f4f6; margin-left:0.5rem;">IA KPI Dashboard</h1>
+			</div>
+			<div class="header-actions" style="margin-top:1rem;">
+				<a href="/dashboard.html" class="welcome-btn" style="margin-right:1rem;"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
 				<a href="/simulator.html" class="welcome-btn"><i class="fas fa-flask"></i> Simulador</a>
 			</div>
-		</div>
+		</header>
+		<main style="display:flex;justify-content:center;align-items:center;min-height:70vh;">
+			<div class="welcome-card" style="background: #232837; padding: 2.5rem 2rem; border-radius: 1.5rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3); text-align: center; max-width: 400px;">
+				<div class="welcome-title" style="font-size:2rem;font-weight:700;margin-bottom:1rem;"><i class="fas fa-robot"></i> IA KPI Dashboard</div>
+				<p style="color:#a1a1aa;">Bienvenido al sistema de monitoreo y simulación de KPIs con IA.<br>Selecciona una opción para comenzar:</p>
+				<div class="welcome-btns" style="display:flex;gap:1.5rem;justify-content:center;margin-top:2rem;">
+					<a href="/dashboard.html" class="welcome-btn" style="background: linear-gradient(135deg, #2563eb, #1e40af); color: white; border: none; border-radius: 0.75rem; padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: flex; align-items: center; gap: 0.75rem;"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+					<a href="/simulator.html" class="welcome-btn" style="background: linear-gradient(135deg, #22d3ee, #2563eb); color: white; border: none; border-radius: 0.75rem; padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: flex; align-items: center; gap: 0.75rem;"><i class="fas fa-flask"></i> Simulador</a>
+				</div>
+			</div>
+		</main>
 	</div>
 </body>
 </html>
