@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador - Mantenimiento Predictivo</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .simulator-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .simulator-panel {
+            background: #232837;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3);
+            color: #f3f4f6;
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #a1a1aa; }
+        .form-input, .form-select { width: 100%; padding: 0.75rem; border: 2px solid #313244; border-radius: 0.5rem; font-size: 1rem; background: #181c24; color: #f3f4f6; transition: all 0.3s ease; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: #2563eb; }
+        .slider-container { margin-top: 0.5rem; }
+        .slider { width: 100%; height: 8px; border-radius: 5px; background: #313244; outline: none; -webkit-appearance: none; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #2563eb; cursor: pointer; }
+        .slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #2563eb; cursor: pointer; border: none; }
+        .slider-value { display: inline-block; margin-left: 1rem; font-weight: 600; color: #60a5fa; }
+        .btn-simulate { width: 100%; padding: 1rem; background: linear-gradient(135deg, #2563eb, #1e40af); color: white; border: none; border-radius: 0.5rem; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-simulate:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); }
+        .result-card { padding: 1.5rem; background: #181c24; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid #2563eb; color: #f3f4f6; }
+        .result-title { font-size: 0.9rem; color: #a1a1aa; margin-bottom: 0.5rem; }
+        .result-value { font-size: 2rem; font-weight: 700; color: #60a5fa; }
+        .comparison-chart { margin-top: 2rem; height: 300px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-title">
+                <span class="header-icon">🔧</span>
+                <h1>Mantenimiento Predictivo IA</h1>
+            </div>
+            <div class="header-actions">
+                <span class="timestamp" id="current-time">Cargando...</span>
+                <button class="btn-refresh" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i> Actualizar
+                </button>
+                <button class="btn-settings" onclick="window.location.href='/dashboard.html'">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </button>
+            </div>
+        </header>
+        <aside class="sidebar">
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/dashboard.html" class="nav-link">
+                            <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#kpis" class="nav-link">
+                            <i class="nav-icon fas fa-chart-line"></i>
+                            <span>KPIs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#predictions" class="nav-link">
+                            <i class="nav-icon fas fa-brain"></i>
+                            <span>Predicciones</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#alerts" class="nav-link">
+                            <i class="nav-icon fas fa-exclamation-triangle"></i>
+                            <span>Alertas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#equipos" class="nav-link">
+                            <i class="nav-icon fas fa-cogs"></i>
+                            <span>Equipos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/simulator.html" class="nav-link active">
+                            <i class="nav-icon fas fa-flask"></i>
+                            <span>Simulador</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <div class="simulator-container">
+                <!-- Panel de Configuración -->
+                <div class="simulator-panel">
+                    <h2 class="section-title">
+                        <i class="fas fa-sliders-h"></i>
+                        Configuración de Simulación
+                    </h2>
+                    <form id="simulator-form">
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Simulación</label>
+                            <select class="form-select" id="sim-type" onchange="toggleSimulationType()">
+                                <option value="prediction">Predicción de Falla</option>
+                                <option value="kpis">Impacto en KPIs</option>
+                            </select>
+                        </div>
+                        <!-- Simulación de Predicción -->
+                        <div id="prediction-sim-inputs">
+                            <div class="form-group">
+                                <label class="form-label">Equipo</label>
+                                <select class="form-select" id="equipo-select">
+                                    <option value="1">CAM-001 - Camión Minero</option>
+                                    <option value="2">TORN-002 - Torno CNC</option>
+                                    <option value="3">COMP-003 - Compresor Industrial</option>
+                                    <option value="4">PUMP-004 - Bomba Hidráulica</option>
+                                    <option value="5">GEN-005 - Generador Eléctrico</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Componente</label>
+                                <select class="form-select" id="componente-select">
+                                    <option value="1">Motor Diesel</option>
+                                    <option value="2">Transmisión</option>
+                                    <option value="3">Sistema Hidráulico</option>
+                                    <option value="4">Frenos</option>
+                                    <option value="5">Neumáticos</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Kilometraje</label>
+                                <div class="slider-container">
+                                    <input type="range" min="0" max="100000" value="50000" class="slider" id="kilometraje" oninput="updateSliderValue('kilometraje')">
+                                    <span class="slider-value" id="kilometraje-value">50,000 km</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Horas de Operación</label>
+                                <div class="slider-container">
+                                    <input type="range" min="0" max="10000" value="5000" class="slider" id="horas-operacion" oninput="updateSliderValue('horas-operacion')">
+                                    <span class="slider-value" id="horas-operacion-value">5,000 hrs</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Días desde último mantenimiento</label>
+                                <div class="slider-container">
+                                    <input type="range" min="0" max="365" value="30" class="slider" id="dias-mant" oninput="updateSliderValue('dias-mant')">
+                                    <span class="slider-value" id="dias-mant-value">30 días</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Porcentaje Vida Útil</label>
+                                <div class="slider-container">
+                                    <input type="range" min="0" max="100" value="50" class="slider" id="vida-util" oninput="updateSliderValue('vida-util')">
+                                    <span class="slider-value" id="vida-util-value">50%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Simulación de KPIs -->
+                        <div id="kpis-sim-inputs" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Retraso de Mantenimiento (días)</label>
+                                <div class="slider-container">
+                                    <input type="range" min="0" max="30" value="0" class="slider" id="delay-days" oninput="updateSliderValue('delay-days')">
+                                    <span class="slider-value" id="delay-days-value">0 días</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Aumento de Costos (%)</label>
+                                <div class="slider-container">
+                                    <input type="range" min="0" max="100" value="0" class="slider" id="cost-increase" oninput="updateSliderValue('cost-increase')">
+                                    <span class="slider-value" id="cost-increase-value">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-simulate" onclick="runSimulation()">
+                            <i class="fas fa-play"></i> Ejecutar Simulación
+                        </button>
+                    </form>
+                </div>
+                <!-- Panel de Resultados -->
+                <div class="simulator-panel">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Resultados de Simulación
+                    </h2>
+                    <div id="results-container">
+                        <p class="text-center" style="padding: 3rem; color: #6b7280;">
+                            <i class="fas fa-info-circle" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                            Configura los parámetros y ejecuta la simulación para ver los resultados
+                        </p>
+                    </div>
+                    <div id="prediction-results" style="display: none;">
+                        <div class="result-card">
+                            <div class="result-title">Probabilidad de Falla</div>
+                            <div class="result-value" id="prob-value">-</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-title">Nivel de Riesgo</div>
+                            <div class="result-value" id="risk-value">-</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-title">Días Estimados hasta Falla</div>
+                            <div class="result-value" id="days-value">-</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-title">Acción Recomendada</div>
+                            <p id="action-value" style="margin-top: 0.5rem; color: #374151;">-</p>
+                        </div>
+                    </div>
+                    <div id="kpis-results" style="display: none;">
+                        <div class="comparison-chart">
+                            <canvas id="kpi-comparison-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <aside class="chat-panel">
+            <div class="chat-header">
+                <h3 class="chat-title">
+                    <i class="fas fa-comments"></i>
+                    Asistente IA
+                </h3>
+                <p class="chat-subtitle">Pregunta sobre predicciones, KPIs y equipos</p>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    <div class="message-bubble">
+                        ¡Hola! Soy tu asistente de mantenimiento predictivo. ¿En qué puedo ayudarte?
+                    </div>
+                    <span class="message-time">Ahora</span>
+                </div>
+            </div>
+            <div class="chat-suggestions" id="chat-suggestions">
+                <!-- Se llenarán dinámicamente -->
+            </div>
+            <div class="chat-input-container">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="chat-input" 
+                    placeholder="Escribe tu pregunta..."
+                    onkeypress="handleChatKeyPress(event)"
+                >
+                <button class="btn-send" onclick="sendChatMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </aside>
+    </div>
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/chat.js"></script>
+    <script src="/static/js/simulator.js"></script>
+    <script>
+        // Actualizar timestamp cada segundo
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+        setInterval(updateTimestamp, 1000);
+        updateTimestamp();
+        // Función global de refresh
+        function refreshData() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[[redirects]]
+  from = "/api/kpis"
+  to = "/.netlify/functions/get-kpis"
+  status = 200
+
+[[redirects]]
+  from = "/api/predictions/alerts"
+  to = "/.netlify/functions/get-alerts"
+  status = 200
+
+[[redirects]]
+  from = "/api/predictions"
+  to = "/.netlify/functions/get-predictions"
+  status = 200

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Mantenimiento Predictivo</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-title">
+                <span class="header-icon">🔧</span>
+                <h1>Mantenimiento Predictivo IA</h1>
+            </div>
+            <div class="header-actions">
+                <span class="timestamp" id="current-time">Cargando...</span>
+                <button class="btn-refresh" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i> Actualizar
+                </button>
+                <button class="btn-settings" onclick="window.location.href='/simulator.html'">
+                    <i class="fas fa-sliders-h"></i> Simulador
+                </button>
+            </div>
+        </header>
+        <aside class="sidebar">
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/dashboard.html" class="nav-link active">
+                            <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#kpis" class="nav-link">
+                            <i class="nav-icon fas fa-chart-line"></i>
+                            <span>KPIs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#predictions" class="nav-link">
+                            <i class="nav-icon fas fa-brain"></i>
+                            <span>Predicciones</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#alerts" class="nav-link">
+                            <i class="nav-icon fas fa-exclamation-triangle"></i>
+                            <span>Alertas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#equipos" class="nav-link">
+                            <i class="nav-icon fas fa-cogs"></i>
+                            <span>Equipos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/simulator.html" class="nav-link">
+                            <i class="nav-icon fas fa-flask"></i>
+                            <span>Simulador</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <!-- KPIs Grid -->
+            <section class="kpi-grid" id="kpis">
+                <!-- Se llenarán dinámicamente con JavaScript -->
+            </section>
+            <!-- Alertas de Alto Riesgo -->
+            <section class="alerts-section" id="alerts">
+                <h2 class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Alertas de Alto Riesgo
+                </h2>
+                <div id="alerts-container">
+                    <p class="text-center">Cargando alertas...</p>
+                </div>
+            </section>
+            <!-- Tabla de Predicciones -->
+            <section class="predictions-section" id="predictions">
+                <h2 class="section-title">
+                    <i class="fas fa-brain"></i>
+                    Predicciones Recientes
+                </h2>
+                <div class="table-container">
+                    <table class="predictions-table">
+                        <thead>
+                            <tr>
+                                <th>Equipo</th>
+                                <th>Componente</th>
+                                <th>Probabilidad</th>
+                                <th>Riesgo</th>
+                                <th>Días Est.</th>
+                                <th>Acción</th>
+                                <th>Explicar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="predictions-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center">Cargando predicciones...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- Gráfico de Tendencias KPIs -->
+            <section class="predictions-section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-area"></i>
+                    Tendencia de KPIs (Últimos 30 Días)
+                </h2>
+                <div class="chart-container">
+                    <canvas id="kpi-trend-chart"></canvas>
+                </div>
+            </section>
+        </main>
+        <aside class="chat-panel">
+            <div class="chat-header">
+                <h3 class="chat-title">
+                    <i class="fas fa-comments"></i>
+                    Asistente IA
+                </h3>
+                <p class="chat-subtitle">Pregunta sobre predicciones, KPIs y equipos</p>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    <div class="message-bubble">
+                        ¡Hola! Soy tu asistente de mantenimiento predictivo. ¿En qué puedo ayudarte?
+                    </div>
+                    <span class="message-time">Ahora</span>
+                </div>
+            </div>
+            <div class="chat-suggestions" id="chat-suggestions">
+                <!-- Se llenarán dinámicamente -->
+            </div>
+            <div class="chat-input-container">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="chat-input" 
+                    placeholder="Escribe tu pregunta..."
+                    onkeypress="handleChatKeyPress(event)"
+                >
+                <button class="btn-send" onclick="sendChatMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </aside>
+    </div>
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/chat.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+        // Actualizar timestamp cada segundo
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+        setInterval(updateTimestamp, 1000);
+        updateTimestamp();
+        // Función global de refresh
+        function refreshData() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
