@@ -1,29 +1,31 @@
-// ==================== SUPABASE CONFIG ====================
+const API_BASE_URL = '';
+
 const SUPABASE_URL = 'https://kgjvxmhkswgqihoxpgsr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_HSsEww4KyjlTPngBGSX6Pg_gtyhjlSC';
 
-// Cargar el cliente de Supabase si no está presente
-if (!window.supabase || !window.supabase.createClient) {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js';
-    script.onload = () => {
+function initializeSupabaseAndLoad() {
+    if (!window.supabase || !window.supabase.createClient) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js';
+        script.onload = () => {
+            window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            loadKPIs();
+            loadAlerts();
+            loadPredictions();
+            loadKPITrends();
+        };
+        document.head.appendChild(script);
+    } else {
         window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        // Llamar a las funciones solo cuando Supabase esté listo
         loadKPIs();
         loadAlerts();
         loadPredictions();
         loadKPITrends();
-    };
-    document.head.appendChild(script);
-} else {
-    window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    loadKPIs();
-    loadAlerts();
-    loadPredictions();
-    loadKPITrends();
+    }
 }
+initializeSupabaseAndLoad();
 // Definir API_BASE_URL vacío para rutas relativas
-const API_BASE_URL = '';
+
 
 // ==================== LOAD KPIs ====================
 async function loadKPIs() {
