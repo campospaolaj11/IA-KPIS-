@@ -93,18 +93,32 @@ async function sendChatMessage() {
 function addMessage(text, sender) {
     const chatMessages = document.getElementById('chat-messages');
     if (!chatMessages) return;
-    
+
     const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-    
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
     messageDiv.innerHTML = `
         <div class="message-bubble">${text}</div>
         <span class="message-time">${time}</span>
     `;
-    
+
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Si el mensaje es del bot, hablar
+    if (sender === 'bot') {
+        speak(text);
+    }
+}
+
+// ==================== TEXT TO SPEECH ====================
+function speak(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES'; // Cambia el idioma si lo necesitas
+        window.speechSynthesis.speak(utterance);
+    }
 }
 
 // ==================== TYPING INDICATOR ====================
