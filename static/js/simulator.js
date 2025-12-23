@@ -2,14 +2,19 @@
 const SUPABASE_URL = 'https://kgjvxmhkswgqihoxpgsr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_HHsEww4KyjlTPngBGSX6Pg_gtyhjlSC';
 
-if (typeof window.createClient === 'undefined') {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
-    script.onload = () => { window.supabase = window.createClient(SUPABASE_URL, SUPABASE_KEY); };
-    document.head.appendChild(script);
-} else {
-    window.supabase = window.createClient(SUPABASE_URL, SUPABASE_KEY);
+function initializeSupabase() {
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    } else {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js';
+        script.onload = () => {
+            window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        };
+        document.head.appendChild(script);
+    }
 }
+initializeSupabase();
 // ==================== SIMULATOR CONFIGURATION ====================
 let comparisonChart = null;
 
@@ -68,11 +73,37 @@ function updateSliderValue(sliderId) {
 // ==================== RUN SIMULATION ====================
 async function runSimulation() {
     const simType = document.getElementById('sim-type').value;
-    
     if (simType === 'prediction') {
         await runPredictionSimulation();
     } else {
         await runKPIsSimulation();
+    }
+}
+
+// ==================== KPIS SIMULATION ====================
+async function runKPIsSimulation() {
+    const delayDays = document.getElementById('delay-days').value;
+    const costIncrease = document.getElementById('cost-increase').value;
+    try {
+        const response = await fetch('/api/simulator/kpis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                delay_days: parseInt(delayDays),
+                cost_increase: parseInt(costIncrease)
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            displayKPIsResults(data.kpis_simulados);
+        } else {
+            alert('Error en la simulación de KPIs: ' + (data.error || 'Respuesta inválida del servidor.'));
+        }
+    } catch (error) {
+        console.error('Error en simulación de KPIs:', error);
+        alert('Error al ejecutar la simulación de KPIs');
     }
 }
 
@@ -150,7 +181,7 @@ function getRiskColor(riesgo) {
 // Async simulation logic moved here
 async function runSimulation(equipoId, componenteId, kilometraje, horasOperacion, diasMant, vidaUtil) {
     try {
-        while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
+        while (!window.supabaseClient) { await new Promise(r => setTimeout(r, 100)); }
         // Simulación simple en frontend (puedes mejorar la lógica)
         const probabilidad = Math.random() * 0.8 + 0.1;
         const nivel_riesgo = probabilidad > 0.7 ? 'Alto' : probabilidad > 0.4 ? 'Medio' : 'Bajo';
@@ -158,7 +189,7 @@ async function runSimulation(equipoId, componenteId, kilometraje, horasOperacion
         const accion_recomendada = nivel_riesgo === 'Alto' ? 'Realizar mantenimiento inmediato' : 'Monitorear estado';
 
         // Guardar simulación en Supabase
-        const { error } = await window.supabase
+        const { error } = await window.supabaseClient
             .from('simulaciones')
             .insert([{
                 tipo: 'prediction',
@@ -263,8 +294,8 @@ function createComparisonChart(kpis) {
 
 // ==================== LOAD SIMULATION HISTORY ====================
 async function loadSimulationHistory() {
-    while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
-    const { data, error } = await window.supabase
+    while (!window.supabaseClient) { await new Promise(r => setTimeout(r, 100)); }
+    const { data, error } = await window.supabaseClient
         .from('simulaciones')
         .select('*')
         .order('fecha', { ascending: false })
@@ -316,8 +347,8 @@ function addClearHistoryButton() {
 
 async function clearSimulationHistory() {
     if (!confirm('¿Seguro que deseas borrar todo el historial de simulaciones?')) return;
-    while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
-    const { error } = await window.supabase.from('simulaciones').delete().neq('id', 0); // Borra todos los registros
+    while (!window.supabaseClient) { await new Promise(r => setTimeout(r, 100)); }
+    const { error } = await window.supabaseClient.from('simulaciones').delete().neq('id', 0); // Borra todos los registros
     if (error) {
         alert('Error al borrar historial: ' + error.message);
         return;
