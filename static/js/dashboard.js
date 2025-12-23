@@ -2,7 +2,7 @@ function renderPredictions(predictions) {
     const tbody = document.getElementById('predictions-tbody');
     if (!tbody) return;
 
-    if (predictions.length === 0) {
+    if (!Array.isArray(predictions) || predictions.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay predicciones disponibles</td></tr>';
         return;
     }
