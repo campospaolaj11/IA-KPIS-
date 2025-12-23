@@ -191,12 +191,12 @@ async function runSimulation(equipoId, componenteId, kilometraje, horasOperacion
         // Guardar simulación en Supabase
         const simObj = {
             tipo: 'prediction',
-            equipo_id: parseInt(equipoId),
-            componente_id: parseInt(componenteId),
-            kilometraje: parseInt(kilometraje),
-            horas_operacion: parseInt(horasOperacion),
-            dias_desde_mant: parseInt(diasMant),
-            porcentaje_vida_util: parseInt(vidaUtil),
+            equipo_id: Number(equipoId) || null,
+            componente_id: Number(componenteId) || null,
+            kilometraje: Number(kilometraje) || null,
+            horas_operacion: Number(horasOperacion) || null,
+            dias_desde_mant: Number(diasMant) || null,
+            porcentaje_vida_util: Number(vidaUtil) || null,
             probabilidad,
             nivel_riesgo,
             dias_estimados_falla,
