@@ -79,12 +79,12 @@ async function sendChatMessage() {
         if (data.success) {
             addMessage(data.answer, 'bot');
         } else {
-            addMessage('Lo siento, ocurri un error al procesar tu pregunta. Por favor intenta de nuevo.', 'bot');
+            addMessage('Lo siento, ocurrió un error al procesar tu pregunta. Por favor intenta de nuevo.', 'bot');
         }
     } catch (error) {
         console.error('Error al enviar mensaje:', error);
         removeTypingIndicator();
-        addMessage('Error de conexin. Por favor verifica tu conexin e intenta nuevamente.', 'bot');
+        addMessage('Error de conexión. Por favor verifica tu conexión e intenta nuevamente.', 'bot');
     }
 }
 
@@ -157,7 +157,7 @@ function handleChatKeyPress(event) {
 function askAboutKPI(kpiName) {
     const input = document.getElementById('chat-input');
     if (input) {
-        input.value = `Cul es el ${kpiName} actual?`;
+        input.value = `¿Cuál es el ${kpiName} actual?`;
         sendChatMessage();
     }
 }
@@ -165,7 +165,7 @@ function askAboutKPI(kpiName) {
 function askAboutEquipment(equipmentCode) {
     const input = document.getElementById('chat-input');
     if (input) {
-        input.value = `Cul es el estado del equipo ${equipmentCode}?`;
+        input.value = `¿Cuál es el estado del equipo ${equipmentCode}?`;
         sendChatMessage();
     }
 }
@@ -173,7 +173,7 @@ function askAboutEquipment(equipmentCode) {
 function askWhyPrediction(predictionId) {
     const input = document.getElementById('chat-input');
     if (input) {
-        input.value = `Por qu la prediccin #${predictionId} tiene ese resultado?`;
+        input.value = `Por que la predicción #${predictionId} tiene ese resultado?`;
         sendChatMessage();
     }
 }
@@ -185,7 +185,7 @@ function clearChat() {
         chatMessages.innerHTML = `
             <div class="message bot">
                 <div class="message-bubble">
-                    1Hola! Soy tu asistente de mantenimiento predictivo. En qu puedo ayudarte?
+                1Hola! Soy tu asistente de mantenimiento predictivo. En qué puedo ayudarte?
                 </div>
                 <span class="message-time">Ahora</span>
             </div>

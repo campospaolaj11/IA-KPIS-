@@ -1,4 +1,8 @@
 [[redirects]]
+  from = "/api/chat/ask"
+  to = "/.netlify/functions/chat"
+  status = 200
+[[redirects]]
   from = "/.netlify/functions/simulator-predict"
   to = "/.netlify/functions/simulator-predict"
   status = 200
