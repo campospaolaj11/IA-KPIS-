@@ -173,27 +173,14 @@ function renderPredictions(predictions) {
     }
     
     tbody.innerHTML = predictions.slice(0, 20).map(pred => `
-        try {
-            // Esperar a que el cliente de Supabase esté disponible
-            while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
-            // Leer la tabla "kpis" (ajusta el nombre si tu tabla es diferente)
-            const { data, error } = await window.supabase
-                .from('kpis')
-                .select('*')
-                .order('id', { ascending: false })
-                .limit(1);
-            if (error) {
-                console.error('Error al cargar KPIs:', error.message);
-                return;
-            }
-            if (data && data.length > 0) {
-                renderKPIs(data[0]);
-            } else {
-                console.warn('No hay datos de KPIs en Supabase.');
-            }
-        } catch (error) {
-            console.error('Error en la petición de KPIs:', error);
-        }
+        <tr>
+            <td>${pred.id || ''}</td>
+            <td>${pred.codigo_equipo || ''}</td>
+            <td>${pred.nombre_equipo || ''}</td>
+            <td>${pred.componente || ''}</td>
+            <td>${(pred.probabilidad * 100).toFixed(1) || ''}%</td>
+            <td>${pred.accion || ''}</td>
+            <td>${formatDate(pred.fecha)}</td>
         </tr>
     `).join('');
 }
@@ -289,28 +276,14 @@ function renderKPITrendChart(history) {
     
     new Chart(canvas, {
         type: 'line',
-        try {
-            // Esperar a que el cliente de Supabase esté disponible
-            while (!window.supabase) { await new Promise(r => setTimeout(r, 100)); }
-            // Leer la tabla "kpis" (ajusta el nombre si tu tabla es diferente)
-            const { data, error } = await window.supabase
-                .from('kpis')
-                .select('*')
-                .order('id', { ascending: false })
-                .limit(1);
-            if (error) {
-                console.error('Error al cargar KPIs:', error.message);
-                return;
-            }
-            if (data && data.length > 0) {
-                renderKPIs(data[0]);
-            } else {
-                console.warn('No hay datos de KPIs en Supabase.');
-            }
-        } catch (error) {
-            console.error('Error en la petición de KPIs:', error);
-        }
-                    }
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'top',
                 },
                 title: {
                     display: false
