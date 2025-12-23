@@ -1,0 +1,12 @@
+{
+  "name": "netlify_frontend",
+  "version": "1.0.0",
+  "description": "Proyecto Netlify con funciones y frontend IA",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+}
