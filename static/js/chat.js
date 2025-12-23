@@ -65,9 +65,7 @@ async function sendChatMessage() {
     try {
         const response = await fetch(`${CHAT_API_URL}/ask`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question: question })
         });
         
