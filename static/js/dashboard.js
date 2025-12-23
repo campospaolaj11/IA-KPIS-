@@ -127,11 +127,13 @@ async function loadAlerts() {
         const response = await fetch(`${API_BASE_URL}/api/predictions/alerts`);
         const data = await response.json();
         
-        if (data.success) {
-            renderAlerts(data.data);
-        } else {
-            console.error('Error al cargar alertas:', data.error);
-        }
+            const response = await fetch('/.netlify/functions/get-alerts');
+            const data = await response.json();
+            if (data && data.success && data.alerts) {
+                renderAlerts(data.alerts);
+            } else {
+                renderAlerts([]);
+            }
     } catch (error) {
         console.error('Error en la peticin de alertas:', error);
     }
@@ -168,11 +170,13 @@ async function loadPredictions() {
         const response = await fetch(`${API_BASE_URL}/api/predictions`);
         const data = await response.json();
         
-        if (data.success) {
-            renderPredictions(data.data);
-        } else {
-            console.error('Error al cargar predicciones:', data.error);
-        }
+            const response = await fetch('/.netlify/functions/get-predictions');
+            const data = await response.json();
+            if (data && data.success && data.predictions) {
+                renderPredictions(data.predictions);
+            } else {
+                renderPredictions([]);
+            }
     } catch (error) {
         console.error('Error en la peticin de predicciones:', error);
     }
@@ -245,9 +249,13 @@ async function loadKPITrends() {
         const response = await fetch(`${API_BASE_URL}/api/kpis/history?days=30`);
         const data = await response.json();
         
-        if (data.success) {
-            renderKPITrendChart(data.data);
-        }
+            const response = await fetch('/.netlify/functions/simulator-kpis');
+            const data = await response.json();
+            if (data && data.success && data.history) {
+                renderKPITrendChart(data.history);
+            } else {
+                renderKPITrendChart([]);
+            }
     } catch (error) {
         console.error('Error al cargar tendencias:', error);
     }

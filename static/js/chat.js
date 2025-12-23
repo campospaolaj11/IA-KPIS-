@@ -9,9 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ==================== LOAD SUGGESTIONS ====================
 async function loadChatSuggestions() {
     try {
-        const response = await fetch(`${CHAT_API_URL}/suggestions`);
+        const response = await fetch('/.netlify/functions/chat-suggestions');
         const data = await response.json();
-        
         if (data.success) {
             renderSuggestions(data.suggestions);
         }
