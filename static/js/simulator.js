@@ -189,22 +189,24 @@ async function runSimulation(equipoId, componenteId, kilometraje, horasOperacion
         const accion_recomendada = nivel_riesgo === 'Alto' ? 'Realizar mantenimiento inmediato' : 'Monitorear estado';
 
         // Guardar simulación en Supabase
+        const simObj = {
+            tipo: 'prediction',
+            equipo_id: parseInt(equipoId),
+            componente_id: parseInt(componenteId),
+            kilometraje: parseInt(kilometraje),
+            horas_operacion: parseInt(horasOperacion),
+            dias_desde_mant: parseInt(diasMant),
+            porcentaje_vida_util: parseInt(vidaUtil),
+            probabilidad,
+            nivel_riesgo,
+            dias_estimados_falla,
+            accion_recomendada,
+            fecha: new Date().toISOString()
+        };
+        console.log('Insertando en Supabase:', simObj);
         const { error } = await window.supabaseClient
             .from('simulaciones')
-            .insert([{
-                tipo: 'prediction',
-                equipo_id: parseInt(equipoId),
-                componente_id: parseInt(componenteId),
-                kilometraje: parseInt(kilometraje),
-                horas_operacion: parseInt(horasOperacion),
-                dias_desde_mant: parseInt(diasMant),
-                porcentaje_vida_util: parseInt(vidaUtil),
-                probabilidad,
-                nivel_riesgo,
-                dias_estimados_falla,
-                accion_recomendada,
-                fecha: new Date().toISOString()
-            }]);
+            .insert([simObj]);
         if (error) {
             alert('Error al guardar simulación en Supabase: ' + error.message);
             return;
